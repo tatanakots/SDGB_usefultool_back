@@ -1,0 +1,5 @@
+httpx
+pycryptodome
+pytz
+flask
+flask_cors

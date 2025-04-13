@@ -1,0 +1,115 @@
+from flask import Flask, request, jsonify
+from sdgb import sdgb_api, qr_api
+from function import *
+import json, time
+from datetime import datetime, timedelta
+from flask_cors import CORS  # 导入 flask-cors
+
+app = Flask(__name__)
+CORS(app)  # 全局允许跨域请求
+
+@app.route('/', methods=['POST', 'GET'])
+def handle_root():
+    return jsonify({'stat': 1, 'msg':'Welcome to Maimai~'}), 200
+
+@app.route('/api/v1/qrcode', methods=['POST'])
+def handle_qrcode():
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+
+    # 检查是否传入了"maid"参数
+    if 'maid' not in data:
+        return jsonify({'stat': -1, 'msg': '未传入MAID', 'userId': -1}), 400
+
+    maid = data['maid']
+    try:
+        aime_data = qr_api(maid)
+        if aime_data['errorID'] == 0:
+            return jsonify({'stat': 1, 'msg': '成功获取userId', 'userId': aime_data['userID']})
+        return jsonify({'stat': aime_data['errorID'], 'msg': 'userId获取失败', 'userId': aime_data['userID']}), 400
+    except:
+        return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'userId': -1}), 500
+
+@app.route('/api/v1/player/preview', methods=['POST'])
+def handle_preview():
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+    
+    if 'userId' not in data:
+        return jsonify({'stat': -1, 'msg': '未传入userId', 'data': None}), 400
+    userId = data['userId']
+    try:
+        data = json.dumps({
+            "userId": int(userId)
+        })
+
+        preview_result = sdgb_api(data, "GetUserPreviewApi", int(userId))
+        preview_data = json.loads(preview_result)
+        if preview_data['userId'] == None:
+            return jsonify({'stat': -1, 'msg': '获取信息失败', 'data': preview_data}), 400
+        return jsonify({'stat': 1, 'msg': '已获取信息', 'data': preview_data})
+    except:
+        return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'data': None}), 500
+
+@app.route('/api/v1/player/sendticket', methods=['POST'])
+def handle_sendticket():
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+    timestamp = int(datetime.now(pytz.timezone('Asia/Tokyo')).timestamp())
+    if 'userId' not in data:
+        return jsonify({'stat': -1, 'msg': '未传入userId', 'data': None, 'timestamp': timestamp}), 400
+    if 'ticketId' not in data:
+        return jsonify({'stat': -1, 'msg': '未传入ticketId', 'data': None, 'timestamp': timestamp}), 400
+    try:
+        userId = int(data['userId'])
+        # print(userId)
+        ticketId = int(data['ticketId'])
+        # print(ticketId)
+        price = int(ticketId) - 1
+        if price > 5:
+            price = 0
+        # print(price)
+        data = json.dumps({
+            "userId": userId,
+            "userCharge": {
+                "chargeId": ticketId,
+                "stock": 1,
+                "purchaseDate": (datetime.now(pytz.timezone('Asia/Tokyo'))).strftime("%Y-%m-%d %H:%M:%S.0"),
+                "validDate": (datetime.now(pytz.timezone('Asia/Tokyo')) + timedelta(days=90)).replace(hour=4, minute=0, second=0).strftime("%Y-%m-%d %H:%M:%S")
+            },
+            "userChargelog": {
+                "chargeId": ticketId,
+                "price": price,
+                "purchaseDate": (datetime.now(pytz.timezone('Asia/Tokyo'))).strftime("%Y-%m-%d %H:%M:%S.0"),
+                "placeId": placeId,
+                "regionId": regionId,
+                "clientId": clientId
+            }
+        })
+        loginresult = login(userId, timestamp)
+        # print(loginresult)
+        if loginresult['returnCode'] != 1:
+            return jsonify({'stat': loginresult['returnCode'], 'msg': '登录失败，请检查是否存在有效二维码。', 'data': None, 'timestamp': timestamp}), 400
+        ticket_result = json.loads(sdgb_api(data, "UpsertUserChargelogApi", userId))
+        # print(ticket_result)
+        logoutresult = logout(userId, timestamp)
+        # print(logoutresult)
+        if ticket_result['returnCode'] != 1 and logoutresult['returnCode'] == 1:
+            return jsonify({'stat': ticket_result['returnCode'], 'msg': '发券失败，但已经成功登出。', 'data': None, 'timestamp': timestamp}), 400
+        if ticket_result['returnCode'] != 1 and logoutresult['returnCode'] != 1:
+            return jsonify({'stat': logoutresult['returnCode'], 'msg': '发券失败，且登出失败！请根据时间戳'+str(timestamp)+'手动登出，否则可能进入小黑屋！', 'data': None, 'timestamp': timestamp}), 400
+        if ticket_result['returnCode'] == 1 and logoutresult['returnCode'] != 1:
+            return jsonify({'stat': logoutresult['returnCode'], 'msg': '发券成功，但登出失败！请根据时间戳'+str(timestamp)+'手动登出，否则可能进入小黑屋！', 'data': None, 'timestamp': timestamp}), 400
+        return jsonify({'stat': 1, 'msg': '发券成功！', 'data': None, 'timestamp': timestamp})
+    except:
+        return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'data': None, 'timestamp': timestamp}), 500
+
+if __name__ == '__main__':
+    # 启动 Flask 应用程序，绑定所有可用IP的5600端口
+    app.run(host='0.0.0.0', port=5600, debug=True)
