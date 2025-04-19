@@ -1,12 +1,18 @@
 from flask import Flask, request, jsonify
 from sdgb import sdgb_api, qr_api
 from function import *
+from settings import *
+from dbconfig import get_database_config
 import json, time
 from datetime import datetime, timedelta
 from flask_cors import CORS  # 导入 flask-cors
+from flask_sqlalchemy import SQLAlchemy
+from dbmodels import *
 
 app = Flask(__name__)
 CORS(app)  # 全局允许跨域请求
+app.config.from_object(get_database_config())
+db.init_app(app)
 
 @app.route('/', methods=['POST', 'GET'])
 def handle_root():
@@ -109,7 +115,20 @@ def handle_sendticket():
         return jsonify({'stat': 1, 'msg': '发券成功！', 'data': None, 'timestamp': timestamp})
     except:
         return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'data': None, 'timestamp': timestamp}), 500
+    
+# 测试数据库连接
+@app.route('/api/v1/setdb', methods=['POST','GET'])
+def handle_setdb():
+    if not db_setdb_lock:
+        try:
+            # 测试数据库是否连接成功
+            db.create_all()  # 创建所有数据库表（如果还没有）
+            return jsonify({'stat': 1, 'msg': '数据库连接成功', 'data': None})
+        except Exception as e:
+            return jsonify({'stat': -1, 'msg': f"数据库连接失败: {e}", 'data': None}), 500
+    else:
+        return jsonify({'stat': -1, 'msg': '无权限操作', 'data': None}), 403
 
 if __name__ == '__main__':
-    # 启动 Flask 应用程序，绑定所有可用IP的5600端口
-    app.run(host='0.0.0.0', port=5600, debug=True)
+    # 启动 Flask 应用程序
+    app.run(host=app_host, port=app_port, debug=app_debug)

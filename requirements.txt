@@ -3,3 +3,6 @@ pycryptodome
 pytz
 flask
 flask_cors
+flask_sqlalchemy
+mysql-connector-python
+pymysql

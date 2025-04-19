@@ -1,4 +1,7 @@
 __pycache__/*
+__pycache__
+instance/*
+instance
 *.pyc
 *.pyo
 *.pyd
@@ -26,6 +29,7 @@ __pycache__/*
 *.7z
 *.bz2
 *.gz
+*.db
 
 settings.py
 sdgb.py
