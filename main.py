@@ -9,11 +9,24 @@ from flask_cors import CORS  # 导入 flask-cors
 from flask_sqlalchemy import SQLAlchemy
 from dbmodels import *
 from authlite import authlite
+import httpx, re
 
 app = Flask(__name__)
 CORS(app)  # 全局允许跨域请求
 app.config.from_object(get_database_config())
 db.init_app(app)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({"stat": 404, "msg": "页面未找到。", "data": None, "timestamp": int(time.time())}), 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({"stat": 405, "msg": "使用了未受支持的方式调用接口，请查看文档后重试。", "data": None, "timestamp": int(time.time())}), 405
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({"stat": 400, "msg": "坏了，就是有些东西坏了。", "data": None, "timestamp": int(time.time())}), 400
 
 @app.route('/', methods=['POST', 'GET'])
 def handle_root():
@@ -155,6 +168,27 @@ def handle_serverstatus():
     except:
         updateserverstatus = False
     return jsonify({'stat': 1, 'msg': '获取服务器状态成功', 'data': {'aimedb': aimedbstatus, 'titleserver': titleserverstatus, 'updateserver': updateserverstatus}})
+
+@app.route('/api/v1/getopt', methods=['POST','GET'])
+def handle_getopt():
+    try:
+        updatedata = authlite()
+        if updatedata["result"] != "1":
+            return jsonify({'stat': -1, 'msg': '获取opt失败', 'data': {"instruction": None, "opts": None}}), 400
+        print(updatedata)
+        r = httpx.get(
+            updatedata["uri"],
+            headers = {
+                'User-Agent': 'SDGB;Windows/Lite',
+                'host': 'maimai-haisin.wahlap.com'
+            }
+        )
+        print(r.status_code)
+        instruction_data = str(r.content)
+        opt_links = re.findall(r"https?://[^\s;]+?\.opt", instruction_data)
+        return jsonify({'stat': 1, 'msg': '获取opt成功', 'data': {"instruction": updatedata["uri"], "opts": opt_links}})
+    except:
+        return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'data': {"instruction": None, "opts": None}}), 500
 
 if __name__ == '__main__':
     # 启动 Flask 应用程序
