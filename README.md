@@ -21,7 +21,7 @@ python3 main.py
 - **函数：** `sdgb_api(data: str, useApi: str, userId: int) → str`  
   向官方服务器发送请求并返回原始响应。  
   - `data`：JSON 格式的请求体  
-  - `useApi`：接口端点名称（字符串，不含服务器后缀，如 `MaiChn`）  
+  - `useApi`：接口端点名称（字符串，不含服务器后缀，如 `MaimaiChn`）  
   - `userId`：用户 ID（整数）  
 
 - **函数：** `qr_api(qr_code: str) → dict`  
