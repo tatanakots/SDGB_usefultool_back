@@ -8,6 +8,12 @@ app_debug = False
 app_host = "0.0.0.0"
 app_port = 5600
 
+# 游戏设置
+
+game_title_ver = "1.41"
+game_rom_ver = "1.41.00"
+game_data_ver = "1.40.11"
+
 # 机厅信息
 
 regionId = 1                    # 地区ID

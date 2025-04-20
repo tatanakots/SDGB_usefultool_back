@@ -12,33 +12,26 @@
 python3 main.py
 ```
 
-## 关于 `sdgb.py`
+## 关于 `sdgb.py` 与 `authlite.py`
 
-这个东西请自备，本仓库不提供， `sdgb.py` 中有两个我们会用到的函数， `sdgb_api` 和 `qr_api`。
+> 本仓库 **不** 附带这两个模块，请自行准备。
 
-`sdgb_api` 用于和官方服务器进行通讯，其调用方法如下：
+### sdgb.py
 
-```python
-sdgb_api(data, useApi, userId)
-"""
-data表示要向服务器发送的数据本体，其格式是json字符串
-useApi是string类型，代表api端点，无需添加服务器后缀（如MaiChn）
-userId是int类型，传入用户ID
+- **函数：** `sdgb_api(data: str, useApi: str, userId: int) → str`  
+  向官方服务器发送请求并返回原始响应。  
+  - `data`：JSON 格式的请求体  
+  - `useApi`：接口端点名称（字符串，不含服务器后缀，如 `MaiChn`）  
+  - `userId`：用户 ID（整数）  
 
-返回值是字符串类型，代表官方服务器返回的信息。
-"""
-```
+- **函数：** `qr_api(qr_code: str) → dict`  
+  向官方 AimeDB 解析二维码并返回已序列化的 JSON 对象。  
+  - `qr_code`：二维码内容（以 `MAID` 或 `SGWCMAID` 开头的字符串）  
 
-`qr_api` 是与官方AimeDB通讯用于解析二维码到用户ID的的函数，其调用方法如下：
+### authlite.py
 
-```python
-qr_api(qr_code)
-"""
-qr_code是string类型，代表二维码的内容，一般为MAID或者SGWCMAID开头的字符串
-
-返回值是json对象，代表官方服务器返回的信息经过json序列化后的结果。
-"""
-```
+- **函数：** `authlite() → dict`  
+  调用官方配信接口，返回已序列化的 JSON 字典。
 
 ## 备注
 

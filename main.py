@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from flask_cors import CORS  # 导入 flask-cors
 from flask_sqlalchemy import SQLAlchemy
 from dbmodels import *
+from authlite import authlite
 
 app = Flask(__name__)
 CORS(app)  # 全局允许跨域请求
@@ -128,6 +129,32 @@ def handle_setdb():
             return jsonify({'stat': -1, 'msg': f"数据库连接失败: {e}", 'data': None}), 500
     else:
         return jsonify({'stat': -1, 'msg': '无权限操作', 'data': None}), 403
+    
+@app.route('/api/v1/serverstatus', methods=['POST','GET'])
+def handle_serverstatus():
+    aimedbstatus = False
+    titleserverstatus = False
+    updateserverstatus = False
+    fakeqrcode = "SGWCMAID0000000000000000000000000000000000000000000000000000000000000000"
+    try:
+        aimedata = qr_api(fakeqrcode)
+        if aimedata["errorID"] == 1 or aimedata["userID"] < 10:
+            aimedbstatus = True
+    except:
+        aimedbstatus = False
+    try:
+        titledata = json.loads(sdgb_api("{}", "Ping", 0))
+        if titledata["result"] == "Pong":
+            titleserverstatus = True
+    except:
+        titleserverstatus = False
+    try:
+        updatedata = authlite()
+        if updatedata["result"] == "1":
+            updateserverstatus = True
+    except:
+        updateserverstatus = False
+    return jsonify({'stat': 1, 'msg': '获取服务器状态成功', 'data': {'aimedb': aimedbstatus, 'titleserver': titleserverstatus, 'updateserver': updateserverstatus}})
 
 if __name__ == '__main__':
     # 启动 Flask 应用程序

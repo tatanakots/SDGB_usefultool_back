@@ -33,3 +33,4 @@ instance
 
 settings.py
 sdgb.py
+authlite.py
