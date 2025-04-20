@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from dbmodels import *
 from authlite import authlite
 import httpx, re
+from updatedata import updatedata
 
 app = Flask(__name__)
 CORS(app)  # 全局允许跨域请求
@@ -81,7 +82,7 @@ def handle_sendticket():
         data = request.get_json()
     else:
         data = request.form
-    timestamp = int(datetime.now(pytz.timezone('Asia/Tokyo')).timestamp())
+    timestamp = int(datetime.now(pytz.timezone('Asia/Shanghai')).timestamp())
     if 'userId' not in data:
         return jsonify({'stat': -1, 'msg': '未传入userId', 'data': None, 'timestamp': timestamp}), 400
     if 'ticketId' not in data:
@@ -100,13 +101,13 @@ def handle_sendticket():
             "userCharge": {
                 "chargeId": ticketId,
                 "stock": 1,
-                "purchaseDate": (datetime.now(pytz.timezone('Asia/Tokyo'))).strftime("%Y-%m-%d %H:%M:%S.0"),
-                "validDate": (datetime.now(pytz.timezone('Asia/Tokyo')) + timedelta(days=90)).replace(hour=4, minute=0, second=0).strftime("%Y-%m-%d %H:%M:%S")
+                "purchaseDate": (datetime.now(pytz.timezone('Asia/Shanghai'))).strftime("%Y-%m-%d %H:%M:%S.0"),
+                "validDate": (datetime.now(pytz.timezone('Asia/Shanghai')) + timedelta(days=90)).replace(hour=4, minute=0, second=0).strftime("%Y-%m-%d %H:%M:%S")
             },
             "userChargelog": {
                 "chargeId": ticketId,
                 "price": price,
-                "purchaseDate": (datetime.now(pytz.timezone('Asia/Tokyo'))).strftime("%Y-%m-%d %H:%M:%S.0"),
+                "purchaseDate": (datetime.now(pytz.timezone('Asia/Shanghai'))).strftime("%Y-%m-%d %H:%M:%S.0"),
                 "placeId": placeId,
                 "regionId": regionId,
                 "clientId": clientId
@@ -128,6 +129,24 @@ def handle_sendticket():
             return jsonify({'stat': logoutresult['returnCode'], 'msg': '发券成功，但登出失败！请根据时间戳'+str(timestamp)+'手动登出，否则可能进入小黑屋！', 'data': None, 'timestamp': timestamp}), 400
         return jsonify({'stat': 1, 'msg': '发券成功！', 'data': None, 'timestamp': timestamp})
     except:
+        return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'data': None, 'timestamp': timestamp}), 500
+    
+@app.route('/api/v1/player/updatedata', methods=['POST'])
+def handle_updatedata():
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+    
+    if 'userId' not in data:
+        return jsonify({'stat': -1, 'msg': '未传入userId', 'data': None}), 400
+    userId = data['userId']
+    timestamp = int(datetime.now(pytz.timezone('Asia/Shanghai')).timestamp())
+    try:
+        return updatedata(userId, timestamp)
+    except Exception as e:
+        logout(userId, timestamp)
+        print(e)
         return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'data': None, 'timestamp': timestamp}), 500
     
 # 测试数据库连接

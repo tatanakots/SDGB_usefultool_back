@@ -183,7 +183,7 @@ class UserMap(db.Model):
     updateTime = db.Column(db.BigInteger, nullable=True)
 
 class UserLoginBonus(db.Model):
-    """ 用户跑图区域信息表，内容分段记载于 GetUserLoginBonusApi 接口 """
+    """ 用户登录奖励信息表，内容分段记载于 GetUserLoginBonusApi 接口 """
     __tablename__ = 'userLoginBonus'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     userId = db.Column(db.Integer, nullable=False)
@@ -194,7 +194,7 @@ class UserLoginBonus(db.Model):
     updateTime = db.Column(db.BigInteger, nullable=True)
 
 class UserOption(db.Model):
-    """ 用户段位认定信息表，完整内容记载于 GetUserOptionApi 接口 """
+    """ 用户设置信息表，完整内容记载于 GetUserOptionApi 接口 """
     __tablename__ = 'userOption'
     userId = db.Column(db.Integer, primary_key=True)
     optionKind = db.Column(db.SmallInteger, nullable=False)
