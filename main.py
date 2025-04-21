@@ -131,6 +131,30 @@ def handle_sendticket():
     except:
         return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'data': None, 'timestamp': timestamp}), 500
     
+@app.route('/api/v1/player/charge', methods=['POST'])
+def handle_charge():
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+    
+    if 'userId' not in data:
+        return jsonify({'stat': -1, 'msg': '未传入userId', 'data': None}), 400
+    userId = data['userId']
+    try:
+        data = json.dumps({
+            "userId": int(userId)
+        })
+
+        charge_result = sdgb_api(data, "GetUserChargeApi", int(userId))
+        charge_data = json.loads(charge_result)
+        # print(charge_data)
+        if charge_data['userId'] == None:
+            return jsonify({'stat': -1, 'msg': '获取信息失败', 'data': charge_data}), 400
+        return jsonify({'stat': 1, 'msg': '已获取信息', 'data': charge_data})
+    except:
+        return jsonify({'stat': -1, 'msg': '服务器发生内部错误', 'data': None}), 500
+    
 @app.route('/api/v1/player/updatedata', methods=['POST'])
 def handle_updatedata():
     if request.is_json:
