@@ -30,7 +30,7 @@ python3 main.py
 
 ### authlite.py
 
-- **函数：** `authlite() → dict`  
+- **函数：** `net_delivery() → dict`  
   调用官方配信接口，返回已序列化的 JSON 字典。
 
 ## 备注

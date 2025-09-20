@@ -97,6 +97,8 @@ def updatedata(userId, timestamp):
             accessCode               = user_data["userData"]["accessCode"],
             friendCode               = user_data["userData"]["friendCode"],
             isNetMember              = user_data["userData"]["isNetMember"],
+            point                    = user_data["userData"]["point"],
+            totalPoint               = user_data["userData"]["totalPoint"],
             playerRating             = user_data["userData"]["playerRating"],
             playerOldRating          = user_data["userData"]["playerOldRating"],
             playerNewRating          = user_data["userData"]["playerNewRating"],
@@ -353,6 +355,7 @@ def updatedata(userId, timestamp):
     nextIndex = 0
     while True:
         user_course_data = getusercourse(userId, nextIndex)
+        # print(user_course_data)
         if user_course_data != None:
             nextIndex = user_course_data['nextIndex']
             if user_course_data['userCourseList'] == None:
@@ -364,6 +367,7 @@ def updatedata(userId, timestamp):
         else:
             break
     db.session.query(UserCourse).filter_by(userId=userId).delete()
+    # print(user_course_list)
     for entry in user_course_list:
         uc = UserCourse(
             userId             = userId,
