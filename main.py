@@ -11,6 +11,7 @@ from dbmodels import *
 from authlite import net_delivery, powerOn
 import httpx, re
 from updatedata import updatedata
+import Mai2
 
 app = Flask(__name__)
 CORS(app)  # 全局允许跨域请求
@@ -213,42 +214,42 @@ def handle_getplayerdata():
         achv = record.achievement / 10000  # 转换为百分比
 
         # 按达成率区间统计
-        if record.scoreRank == 0xD:
+        if record.scoreRank == Mai2.RankID.SSSp.value:
             music_stats['sssp'] += 1
-        elif record.scoreRank == 0xC:
+        elif record.scoreRank == Mai2.RankID.SSS.value:
             music_stats['sss'] += 1
-        elif record.scoreRank == 0xB:
+        elif record.scoreRank == Mai2.RankID.SSp.value:
             music_stats['ssp'] += 1
-        elif record.scoreRank == 0xA:
+        elif record.scoreRank == Mai2.RankID.SS.value:
             music_stats['ss'] += 1
-        elif record.scoreRank == 0x9:
+        elif record.scoreRank == Mai2.RankID.Sp.value:
             music_stats['sp'] += 1
-        elif record.scoreRank == 0x8:
+        elif record.scoreRank == Mai2.RankID.S.value:
             music_stats['s'] += 1
 
-        if record.scoreRank >= 5:
+        if record.scoreRank >= Mai2.RankID.A.value:
             music_stats['clear'] += 1
 
         # 按 comboStatus 统计
-        if record.comboStatus == 4:
+        if record.comboStatus == Mai2.FcID.APp.value:
             music_stats['app'] += 1
-        elif record.comboStatus == 3:
+        elif record.comboStatus == Mai2.FcID.AP.value:
             music_stats['ap'] += 1
-        elif record.comboStatus == 2:
+        elif record.comboStatus == Mai2.FcID.FCp.value:
             music_stats['fcp'] += 1
-        elif record.comboStatus == 1:
+        elif record.comboStatus == Mai2.FcID.FC.value:
             music_stats['fc'] += 1
 
         # 按 syncStatus 统计
-        if record.syncStatus == 5:
+        if record.syncStatus == Mai2.SyncID.Sync.value:
             music_stats['sync'] += 1
-        elif record.syncStatus == 4:
+        elif record.syncStatus == Mai2.SyncID.FSDp.value:
             music_stats['fdxp'] += 1
-        elif record.syncStatus == 3:
+        elif record.syncStatus == Mai2.SyncID.FSD.value:
             music_stats['fdx'] += 1
-        elif record.syncStatus == 2:
+        elif record.syncStatus == Mai2.SyncID.FSp.value:
             music_stats['fsp'] += 1
-        elif record.syncStatus == 1:
+        elif record.syncStatus == Mai2.SyncID.FS.value:
             music_stats['fs'] += 1
 
     # 时间戳
